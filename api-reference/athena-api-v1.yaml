@@ -1,0 +1,666 @@
+openapi: "3.1.0"
+info:
+  title: Athena GiftCard API
+  description: |
+    The Athena GiftCard API v1 enables external merchants to browse and purchase digital gift cards.
+
+    ## Authentication
+    All API requests require two headers:
+    - `Authorization: Bearer <your_api_key>`
+    - `partnerid: <your_partner_id>`
+
+    Contact sunil.kumar@lysto.io for credentials and IP whitelisting.
+
+    ## Decryption
+    Gift codes are encrypted using AES-256-GCM. Use the `iv` and `tag` from the response along with your secret key to decrypt.
+  version: "1.0.0"
+  contact:
+    name: Athena Support
+    email: sunil.kumar@lysto.io
+
+servers:
+  - url: https://distapi.athenagaming.gg/api/v1
+    description: Production
+  - url: https://stagedistapi.lysto.io/api/v1
+    description: Staging
+  - url: http://localhost:3001/api/v1
+    description: Local Development
+
+security:
+  - BearerAuth: []
+    PartnerId: []
+
+tags:
+  - name: Gift Cards
+    description: Browse available gift card products
+  - name: SKUs
+    description: Get gift card denominations and pricing
+  - name: Purchase
+    description: Purchase gift cards
+  - name: Orders
+    description: Check order status
+  - name: Wallet
+    description: Check wallet balance
+
+paths:
+  /giftcards:
+    get:
+      tags:
+        - Gift Cards
+      summary: List Available Gift Cards
+      description: Returns a paginated list of available gift card products.
+      operationId: listGiftCards
+      parameters:
+        - name: brand
+          in: query
+          description: Filter by brand name (e.g., Steam, Valorant)
+          required: false
+          schema:
+            type: string
+          example: Steam
+        - name: pageNumber
+          in: query
+          description: Page number (0-indexed)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          example: 0
+        - name: pageSize
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          example: 20
+      responses:
+        '200':
+          description: Successful response with list of gift cards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardsResponse'
+              example:
+                status: 200
+                giftcards:
+                  - id: "1"
+                    name: "Steam"
+                    description: "Steam discount cards"
+                    overallDiscount: 5
+                    image: "https://images.contentstack.io/..."
+                  - id: "10"
+                    name: "Valorant"
+                    description: "Valorant Points"
+                    overallDiscount: 3
+                    image: "https://images.contentstack.io/..."
+                pagination:
+                  total: 2
+                  page: 0
+                  pageSize: 20
+                  totalPages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /giftcards/{giftcard_id}/skus:
+    get:
+      tags:
+        - SKUs
+      summary: Get Gift Card SKU Details
+      description: Returns available denominations (SKUs) for a specific gift card product.
+      operationId: getGiftCardSkus
+      parameters:
+        - name: giftcard_id
+          in: path
+          required: true
+          description: Gift card product ID
+          schema:
+            type: string
+          example: "56"
+      responses:
+        '200':
+          description: Successful response with list of SKUs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkusResponse'
+              example:
+                status: 200
+                skus:
+                  - sku_id: "22"
+                    name: "Steam 150"
+                    brand: "Steam Voucher code"
+                    denomination: "150"
+                    discount: "12%"
+                    status: "active"
+                    createdAt: 1720008951
+                    updateAt: 1720008951
+                  - sku_id: "56"
+                    name: "Steam 3000"
+                    brand: "Steam Voucher code"
+                    denomination: "3000"
+                    discount: "12%"
+                    status: "active"
+                    createdAt: 1750921859
+                    updateAt: 1751369835
+                pagination:
+                  total: 4
+                  page: 0
+                  pageSize: 20
+                  totalPages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /giftcard/purchase:
+    post:
+      tags:
+        - Purchase
+      summary: Purchase a Gift Card
+      description: |
+        Places a gift card order. The response contains encrypted gift codes that must be decrypted using AES-256-GCM.
+
+        **Important:** The `merchant_order_request_id` acts as an idempotency key. Using the same ID will return the existing order.
+      operationId: purchaseGiftCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+            example:
+              merchant_order_request_id: "A242C1C3-1234-5678-90AB-CDEF12345678"
+              giftcard_id: "1"
+              sku_id: "1"
+              quantity: 4
+              currency: "INR"
+      responses:
+        '200':
+          description: Purchase successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponse'
+              example:
+                merchant_order_request_id: "A242C1C3-1234-5678-90AB-CDEF12345678"
+                order_id: "182"
+                status: "completed"
+                encryptedgiftcodes: "a1b2c3d4e5f6..."
+                iv: "1234567890abcdef"
+                tag: "fedcba0987654321"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/DuplicateOrder'
+
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Check Order Status
+      description: |
+        Returns the current status of an order. Provide either `order_id` OR `merchant_order_request_id`.
+
+        **Order Status Values:**
+        - `processing` - Payment processed, awaiting fulfillment
+        - `completed` - Gift codes delivered successfully
+        - `failed` - Order failed (balance/inventory issues)
+      operationId: getOrderStatus
+      parameters:
+        - name: order_id
+          in: query
+          description: Internal order ID returned from purchase
+          required: false
+          schema:
+            type: string
+          example: "5412"
+        - name: merchant_order_request_id
+          in: query
+          description: Your unique order reference ID
+          required: false
+          schema:
+            type: string
+          example: "A242C1C3-1234-5678-90AB-CDEF12345678"
+      responses:
+        '200':
+          description: Order status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+              example:
+                merchant_order_request_id: "A242C1C3-1234-5678-90AB-CDEF12345678"
+                order_id: "182"
+                status: "completed"
+                encryptedgiftcodes: "a1b2c3d4e5f6..."
+                iv: "1234567890abcdef"
+                tag: "fedcba0987654321"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /wallet-balance:
+    get:
+      tags:
+        - Wallet
+      summary: Get Wallet Balance
+      description: Returns the merchant's current wallet balance.
+      operationId: getWalletBalance
+      responses:
+        '200':
+          description: Wallet balance retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletBalanceResponse'
+              example:
+                status: 200
+                balance: "92883.95"
+                partnerName: "pine"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key provided by Athena (Bearer token)
+    PartnerId:
+      type: apiKey
+      in: header
+      name: partnerid
+      description: Partner ID provided by Athena
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing_auth:
+              summary: Missing Authorization Header
+              value:
+                error:
+                  type: authentication_error
+                  code: MISSING_AUTH_HEADER
+                  message: Authorization header is missing
+                  trace_id: ath_v1_1761733373166_abc123
+                  retryable: false
+            invalid_credentials:
+              summary: Invalid Credentials
+              value:
+                error:
+                  type: authentication_error
+                  code: INVALID_CREDENTIALS
+                  message: Invalid partner ID or secret key
+                  trace_id: ath_v1_1761733373166_def456
+                  retryable: false
+            ip_not_whitelisted:
+              summary: IP Not Whitelisted
+              value:
+                error:
+                  type: authentication_error
+                  code: IP_NOT_WHITELISTED
+                  message: IP address not authorized
+                  trace_id: ath_v1_1761733373166_ghi789
+                  retryable: false
+
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficient_balance:
+              summary: Insufficient Balance
+              value:
+                error:
+                  type: invalid_request_error
+                  code: INSUFFICIENT_BALANCE
+                  message: "Insufficient wallet balance. Available: 5000 INR, Required: 11800 INR."
+                  trace_id: ath_v1_1761733373166_jkl012
+                  retryable: false
+                  meta:
+                    available: 5000
+                    required: 11800
+                    currency: INR
+            insufficient_inventory:
+              summary: Insufficient Inventory
+              value:
+                error:
+                  type: invalid_request_error
+                  code: INSUFFICIENT_INVENTORY
+                  message: Not enough stock available
+                  trace_id: ath_v1_1761733373166_mno345
+                  retryable: false
+            invalid_sku:
+              summary: Invalid SKU
+              value:
+                error:
+                  type: invalid_request_error
+                  code: INVALID_SKU
+                  message: SKU is invalid or unavailable
+                  trace_id: ath_v1_1761733373166_pqr678
+                  retryable: false
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            order_not_found:
+              summary: Order Not Found
+              value:
+                error:
+                  type: invalid_request_error
+                  code: ORDER_NOT_FOUND
+                  message: Order does not exist
+                  trace_id: ath_v1_1761733373166_stu901
+                  retryable: false
+            product_not_found:
+              summary: Product Not Found
+              value:
+                error:
+                  type: invalid_request_error
+                  code: PRODUCT_NOT_FOUND
+                  message: Product does not exist
+                  trace_id: ath_v1_1761733373166_vwx234
+                  retryable: false
+
+    DuplicateOrder:
+      description: Duplicate order ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              type: invalid_request_error
+              code: DUPLICATE_ORDER
+              message: Order with this ID already exists
+              trace_id: ath_v1_1761733373166_yza567
+              retryable: false
+
+  schemas:
+    GiftCardsResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 200
+        giftcards:
+          type: array
+          description: List of available gift card products
+          items:
+            $ref: '#/components/schemas/GiftCard'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    GiftCard:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique product identifier
+          example: "1"
+        name:
+          type: string
+          description: Product name
+          example: "Steam"
+        description:
+          type: string
+          description: Product description
+          example: "Steam discount cards"
+        overallDiscount:
+          type: number
+          description: Discount percentage applied
+          example: 5
+        image:
+          type: string
+          format: uri
+          description: Product image URL
+          example: "https://images.contentstack.io/..."
+
+    SkusResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        skus:
+          type: array
+          description: List of available SKUs (denominations)
+          items:
+            $ref: '#/components/schemas/Sku'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Sku:
+      type: object
+      properties:
+        sku_id:
+          type: string
+          description: Unique SKU identifier
+          example: "22"
+        name:
+          type: string
+          description: SKU display name
+          example: "Steam 150"
+        brand:
+          type: string
+          description: Brand name
+          example: "Steam Voucher code"
+        denomination:
+          type: string
+          description: Face value of the gift card
+          example: "150"
+        discount:
+          type: string
+          description: Discount percentage
+          example: "12%"
+        status:
+          type: string
+          description: SKU availability status
+          enum:
+            - active
+            - inactive
+          example: "active"
+        createdAt:
+          type: integer
+          description: Unix timestamp of creation
+          example: 1720008951
+        updateAt:
+          type: integer
+          description: Unix timestamp of last update
+          example: 1720008951
+
+    PurchaseRequest:
+      type: object
+      required:
+        - merchant_order_request_id
+        - giftcard_id
+        - sku_id
+        - quantity
+      properties:
+        merchant_order_request_id:
+          type: string
+          description: |
+            Unique order ID (idempotency key). Use UUID format recommended.
+            Re-using the same ID will return the existing order.
+          example: "A242C1C3-1234-5678-90AB-CDEF12345678"
+        giftcard_id:
+          type: string
+          description: Product ID from the gift cards list
+          example: "1"
+        sku_id:
+          type: string
+          description: SKU ID for the desired denomination
+          example: "1"
+        quantity:
+          type: integer
+          description: Number of gift cards to purchase
+          minimum: 1
+          example: 4
+        currency:
+          type: string
+          description: Currency code
+          default: "INR"
+          example: "INR"
+
+    PurchaseResponse:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+          description: Your order reference ID
+        order_id:
+          type: string
+          description: Internal order ID
+          example: "182"
+        status:
+          type: string
+          description: Order status
+          enum:
+            - completed
+            - processing
+            - failed
+          example: "completed"
+        encryptedgiftcodes:
+          type: string
+          description: |
+            AES-256-GCM encrypted gift codes. Decrypt using your secret key, iv, and tag.
+          example: "a1b2c3d4e5f6..."
+        iv:
+          type: string
+          description: Initialization vector for AES-256-GCM decryption
+          example: "1234567890abcdef"
+        tag:
+          type: string
+          description: Authentication tag for AES-256-GCM decryption
+          example: "fedcba0987654321"
+
+    OrderResponse:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+          description: Your order reference ID
+        order_id:
+          type: string
+          description: Internal order ID
+        status:
+          type: string
+          description: |
+            Order status:
+            - `processing` - Payment processed, awaiting fulfillment
+            - `completed` - Gift codes delivered
+            - `failed` - Order failed
+          enum:
+            - completed
+            - processing
+            - failed
+        encryptedgiftcodes:
+          type: string
+          description: Encrypted gift codes (only present when status is completed)
+        iv:
+          type: string
+          description: Initialization vector for decryption
+        tag:
+          type: string
+          description: Authentication tag for decryption
+
+    WalletBalanceResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        balance:
+          type: string
+          description: Current wallet balance
+          example: "92883.95"
+        partnerName:
+          type: string
+          description: Partner account name
+          example: "pine"
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          example: 2
+        page:
+          type: integer
+          description: Current page number (0-indexed)
+          example: 0
+        pageSize:
+          type: integer
+          description: Items per page
+          example: 20
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 1
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Error category
+              enum:
+                - authentication_error
+                - invalid_request_error
+                - api_error
+              example: "invalid_request_error"
+            code:
+              type: string
+              description: Machine-readable error code
+              example: "INSUFFICIENT_BALANCE"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Insufficient wallet balance"
+            trace_id:
+              type: string
+              description: Unique error trace ID for debugging
+              example: "ath_v1_1761733373166_abc123"
+            retryable:
+              type: boolean
+              description: Whether the request can be retried
+              example: false
+            fields:
+              type: array
+              description: Field-specific validation errors
+              items:
+                type: object
+                properties:
+                  param:
+                    type: string
+                  code:
+                    type: string
+                  message:
+                    type: string
+            meta:
+              type: object
+              description: Additional error context
+              additionalProperties: true
