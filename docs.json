@@ -6,18 +6,18 @@
   "colors": {
     "primary": "#00FF00"
   },
-  "versions": ["v1", "v2", "v3"],
+  "versions": ["v3", "v2", "v1"],
   "navigation": {
     "versions": [
       {
-        "version": "v1",
+        "version": "v3",
         "tabs": [
           {
             "tab": "API Reference",
             "groups": [
               {
-                "group": "Athena API",
-                "openapi": "api-reference/athena-api-v1.yaml"
+                "group": "Athena API v3",
+                "openapi": "api-reference/athena-api-v3.yaml"
               }
             ]
           }
@@ -30,7 +30,7 @@
             "tab": "API Reference",
             "groups": [
               {
-                "group": "Athena API",
+                "group": "Athena API v2",
                 "openapi": "api-reference/athena-api-v2.yaml"
               }
             ]
@@ -38,14 +38,14 @@
         ]
       },
       {
-        "version": "v3",
+        "version": "v1",
         "tabs": [
           {
             "tab": "API Reference",
             "groups": [
               {
-                "group": "Athena API",
-                "openapi": "api-reference/athena-api-v3.yaml"
+                "group": "Athena API v1",
+                "openapi": "api-reference/athena-api-v1.yaml"
               }
             ]
           }
