@@ -71,7 +71,7 @@
             "group": "Athena API",
             "version": "v1",
             "openapi": "api-reference/athena-api-v1.yaml"
-          }
+          },
           {
             "group": "Endpoint examples",
             "pages": [
