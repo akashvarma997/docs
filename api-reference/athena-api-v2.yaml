@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title: Athena GiftCard API
+  title: Athena GiftCard API V2
   description: |
     The Athena GiftCard API v2 provides enhanced features for browsing and purchasing digital gift cards.
 
