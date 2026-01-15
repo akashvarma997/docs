@@ -1,17 +1,23 @@
 {
+  "$schema": "https://mintlify.com/docs.json",
   "name": "Athena Gaming",
+  "theme": "mint",
+  "versions": ["v3", "v2", "v1"],
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#00FF00"
+    "primary": "#00FF00",
+    "light": "#00FF00",
+    "dark": "#00FF00"
   },
-  "versions": ["v3", "v2", "v1"], 
   "navigation": [
     {
       "tab": "Guides",
       "groups": [
         {
           "group": "Getting Started",
-          "pages": ["introduction"]
+          "pages": [
+            "introduction"
+          ]
         }
       ]
     },
@@ -20,7 +26,9 @@
       "groups": [
         {
           "group": "General",
-          "pages": ["api-reference/introduction"]
+          "pages": [
+            "api-reference/introduction"
+          ]
         },
         {
           "group": "Athena API",
