@@ -8,6 +8,7 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
+  "versions": ["v3", "v2", "v1"],
   "navigation": {
     "tabs": [
       {
@@ -58,8 +59,19 @@
           },
           {
             "group": "Athena API",
-            "openapi": "api-reference/athena-api-openapi.yaml"
+            "version": "v3",
+            "openapi": "api-reference/athena-api-v3.yaml"
           },
+          {
+            "group": "Athena API",
+            "version": "v2",
+            "openapi": "api-reference/athena-api-v2.yaml"
+          },
+          {
+            "group": "Athena API",
+            "version": "v1",
+            "openapi": "api-reference/athena-api-v1.yaml"
+          }
           {
             "group": "Endpoint examples",
             "pages": [
