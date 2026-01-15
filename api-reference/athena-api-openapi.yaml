@@ -1,0 +1,1367 @@
+openapi: 3.0.3
+info:
+  title: Athena GiftCard API
+  description: |
+    The Athena GiftCard API enables external merchants to browse and purchase digital gift cards.
+    It follows RESTful principles and responds with JSON.
+
+    ## Authentication
+    All API requests require two headers:
+    - `Authorization: Bearer <your_api_key>`
+    - `partnerid: <your_partner_id>`
+
+    Contact sunil.kumar@lysto.io for credentials and IP whitelisting.
+  version: 3.0.0
+  contact:
+    name: Athena Support
+    email: sunil.kumar@lysto.io
+
+servers:
+  - url: https://distapi.athenagaming.gg
+    description: Production
+  - url: https://stagedistapi.lysto.io
+    description: Test/Staging
+
+security:
+  - BearerAuth: []
+    PartnerId: []
+
+tags:
+  - name: Gift Cards
+    description: Browse available gift card products
+  - name: SKUs
+    description: Get gift card denominations and pricing
+  - name: Purchase
+    description: Purchase gift cards and topups
+  - name: Orders
+    description: Check order status
+  - name: Wallet
+    description: Check wallet balance
+  - name: Invoice
+    description: Generate invoices
+
+paths:
+  # ============================================
+  # V1 ENDPOINTS
+  # ============================================
+
+  /api/v1/giftcards:
+    get:
+      tags:
+        - Gift Cards
+      summary: List Available Gift Cards (v1)
+      description: Returns available gift card products with basic information.
+      operationId: listGiftCardsV1
+      parameters:
+        - name: brand
+          in: query
+          description: Filter by brand name
+          schema:
+            type: string
+          example: Steam
+        - name: pageNumber
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardsResponseV1'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/giftcards/{giftcard_id}/skus:
+    get:
+      tags:
+        - SKUs
+      summary: Get Gift Card SKU Details (v1)
+      description: Returns available denominations for a gift card.
+      operationId: getSkusV1
+      parameters:
+        - name: giftcard_id
+          in: path
+          required: true
+          description: Gift card product ID
+          schema:
+            type: string
+          example: "56"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkusResponseV1'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/giftcard/purchase:
+    post:
+      tags:
+        - Purchase
+      summary: Purchase a Gift Card (v1)
+      description: Places a gift card order.
+      operationId: purchaseGiftCardV1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequestV1'
+      responses:
+        '200':
+          description: Successful purchase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponseV1'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/orders:
+    get:
+      tags:
+        - Orders
+      summary: Check Order Status (v1)
+      description: Returns the current status of an order.
+      operationId: getOrderStatusV1
+      parameters:
+        - name: order_id
+          in: query
+          description: Internal order ID
+          schema:
+            type: string
+          example: "5412"
+        - name: merchant_order_request_id
+          in: query
+          description: Your order reference ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponseV1'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/wallet-balance:
+    get:
+      tags:
+        - Wallet
+      summary: Get Wallet Balance (v1)
+      description: Returns the merchant's current wallet balance.
+      operationId: getWalletBalanceV1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletBalanceResponseV1'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================
+  # V2 ENDPOINTS
+  # ============================================
+
+  /api/v2/giftcards:
+    get:
+      tags:
+        - Gift Cards
+      summary: List Available Gift Cards (v2)
+      description: |
+        Enhanced version with S3 presigned URLs for high-quality assets.
+        Includes logos, terms & conditions, and redemption steps.
+      operationId: listGiftCardsV2
+      parameters:
+        - name: brand
+          in: query
+          description: Filter by brand name
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftCardsResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v2/giftcards/{giftcard_id}/skus:
+    get:
+      tags:
+        - SKUs
+      summary: Get Gift Card SKU Details (v2)
+      description: Returns available denominations with enhanced details including tax rate.
+      operationId: getSkusV2
+      parameters:
+        - name: giftcard_id
+          in: path
+          required: true
+          description: Gift card product ID
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkusResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v2/giftcard/purchase:
+    post:
+      tags:
+        - Purchase
+      summary: Purchase a Gift Card (v2)
+      description: |
+        Places a gift card order with optional invoice generation and auto-delivery.
+        Supports customer details, delivery details, and distribution channels.
+      operationId: purchaseGiftCardV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequestV2'
+      responses:
+        '200':
+          description: Successful purchase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponseV2'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v2/orders:
+    get:
+      tags:
+        - Orders
+      summary: Check Order Status (v2)
+      description: Returns the current status of an order with expiry dates and redeem link.
+      operationId: getOrderStatusV2
+      parameters:
+        - name: order_id
+          in: query
+          description: Internal order ID
+          schema:
+            type: string
+        - name: merchant_order_request_id
+          in: query
+          description: Your order reference ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v2/wallet-balance:
+    get:
+      tags:
+        - Wallet
+      summary: Get Wallet Balance (v2)
+      description: Returns the merchant's current wallet balance.
+      operationId: getWalletBalanceV2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletBalanceResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v2/invoice:
+    get:
+      tags:
+        - Invoice
+      summary: Generate Invoice (v2)
+      description: |
+        Generate a PDF invoice for a completed order with sequential numbering.
+        Invoice URLs are valid for 24 hours.
+      operationId: generateInvoiceV2
+      parameters:
+        - name: order_id
+          in: query
+          description: Internal order ID
+          schema:
+            type: string
+        - name: merchant_order_request_id
+          in: query
+          description: Your order reference ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================
+  # V3 ENDPOINTS
+  # ============================================
+
+  /api/v3/giftcards/{giftcard_id}/skus:
+    get:
+      tags:
+        - SKUs
+      summary: Get Gift Card SKU Details (v3)
+      description: |
+        Returns available denominations with topup support.
+        V3 introduces the `fulfilment_type` field to distinguish between voucher and topup products.
+      operationId: getSkusV3
+      parameters:
+        - name: giftcard_id
+          in: path
+          required: true
+          description: Gift card product ID
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkusResponseV3'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v3/list-servers:
+    post:
+      tags:
+        - SKUs
+      summary: List Servers for Topup Product (v3)
+      description: Returns available servers for a topup product.
+      operationId: listServersV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - giftcard_id
+                - sku_id
+              properties:
+                giftcard_id:
+                  type: string
+                  description: Product ID
+                  example: "123"
+                sku_id:
+                  type: string
+                  description: SKU ID
+                  example: "789"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListServersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/giftcard/validate:
+    post:
+      tags:
+        - Purchase
+      summary: Validate Purchase (v3)
+      description: |
+        Pre-validates a purchase request without deducting balance or creating orders.
+        Use this to validate player IDs for topup products before making a purchase.
+      operationId: validatePurchaseV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidatePurchaseRequest'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidatePurchaseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/giftcard/purchase:
+    post:
+      tags:
+        - Purchase
+      summary: Purchase a Gift Card / Topup (v3)
+      description: |
+        Places a gift card or topup order.
+        V3 supports both voucher and topup fulfilment types.
+      operationId: purchaseGiftCardV3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequestV3'
+      responses:
+        '200':
+          description: Successful purchase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponseV3'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v3/orders:
+    get:
+      tags:
+        - Orders
+      summary: Check Order Status (v3)
+      description: |
+        Returns the current status of an order with support for both voucher and topup fulfilment types.
+      operationId: getOrderStatusV3
+      parameters:
+        - name: order_id
+          in: query
+          description: Internal order ID
+          schema:
+            type: string
+        - name: merchant_order_request_id
+          in: query
+          description: Your order reference ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponseV3'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key provided by Athena
+    PartnerId:
+      type: apiKey
+      in: header
+      name: partnerid
+      description: Partner ID provided by Athena
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              type: authentication_error
+              code: INVALID_CREDENTIALS
+              message: Invalid partner ID or secret key
+              trace_id: ath_v2_1761733373166_abc123
+              retryable: false
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              type: invalid_request_error
+              code: INVALID_PARAMETERS
+              message: One or more parameters are invalid
+              trace_id: ath_v2_1761733373166_def456
+              retryable: false
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              type: invalid_request_error
+              code: ORDER_NOT_FOUND
+              message: Order does not exist
+              trace_id: ath_v2_1761733373166_ghi789
+              retryable: false
+
+  schemas:
+    # ============================================
+    # V1 SCHEMAS
+    # ============================================
+
+    GiftCardsResponseV1:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        giftcards:
+          type: array
+          items:
+            $ref: '#/components/schemas/GiftCardV1'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    GiftCardV1:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        name:
+          type: string
+          example: Steam
+        description:
+          type: string
+          example: Steam discount cards
+        overallDiscount:
+          type: number
+          example: 5
+        image:
+          type: string
+          format: uri
+          example: https://images.contentstack.io/...
+
+    SkusResponseV1:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuV1'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SkuV1:
+      type: object
+      properties:
+        sku_id:
+          type: string
+          example: "22"
+        name:
+          type: string
+          example: Steam 150
+        brand:
+          type: string
+          example: Steam Voucher code
+        denomination:
+          type: string
+          example: "150"
+        discount:
+          type: string
+          example: "12%"
+        status:
+          type: string
+          enum: [active, inactive]
+          example: active
+        createdAt:
+          type: integer
+          example: 1720008951
+        updateAt:
+          type: integer
+          example: 1720008951
+
+    PurchaseRequestV1:
+      type: object
+      required:
+        - merchant_order_request_id
+        - giftcard_id
+        - sku_id
+        - quantity
+      properties:
+        merchant_order_request_id:
+          type: string
+          description: Unique order ID (idempotency key)
+          example: A242C1C3-1234-5678-90AB-CDEF12345678
+        giftcard_id:
+          type: string
+          description: Product ID from gift cards list
+          example: "1"
+        sku_id:
+          type: string
+          description: SKU denomination ID
+          example: "1"
+        quantity:
+          type: integer
+          minimum: 1
+          description: Number of gift cards
+          example: 4
+        currency:
+          type: string
+          default: INR
+          example: INR
+
+    PurchaseResponseV1:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+          example: "182"
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        encryptedgiftcodes:
+          type: string
+          description: AES-256-GCM encrypted gift codes
+        iv:
+          type: string
+          description: Initialization vector for decryption
+        tag:
+          type: string
+          description: Authentication tag for decryption
+
+    OrderResponseV1:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        encryptedgiftcodes:
+          type: string
+        iv:
+          type: string
+        tag:
+          type: string
+
+    WalletBalanceResponseV1:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        balance:
+          type: string
+          example: "92883.95"
+        partnerName:
+          type: string
+          example: pine
+
+    # ============================================
+    # V2 SCHEMAS
+    # ============================================
+
+    GiftCardsResponseV2:
+      type: object
+      properties:
+        giftcards:
+          type: array
+          items:
+            $ref: '#/components/schemas/GiftCardV2'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    GiftCardV2:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        overallDiscount:
+          type: number
+        image:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: integer
+        updatedAt:
+          type: integer
+        assets:
+          $ref: '#/components/schemas/GiftCardAssets'
+
+    GiftCardAssets:
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [LOGOS]
+              resolution:
+                type: string
+                example: 512x512
+              url:
+                type: string
+                format: uri
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              documentType:
+                type: string
+                enum: [TERMS_AND_CONDITIONS, STEPS_TO_REDEEM]
+              url:
+                type: string
+                format: uri
+              text:
+                type: array
+                items:
+                  type: string
+
+    SkusResponseV2:
+      type: object
+      properties:
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuV2'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SkuV2:
+      type: object
+      properties:
+        sku_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        denomination:
+          type: string
+        tax_rate:
+          type: string
+          example: "18"
+        discount:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: integer
+        updateAt:
+          type: integer
+
+    PurchaseRequestV2:
+      type: object
+      required:
+        - merchant_order_request_id
+        - giftcard_id
+        - sku_id
+        - quantity
+      properties:
+        merchant_order_request_id:
+          type: string
+        giftcard_id:
+          type: string
+        sku_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          default: INR
+        customerDetails:
+          $ref: '#/components/schemas/CustomerDetails'
+        deliveryDetails:
+          $ref: '#/components/schemas/DeliveryDetails'
+        customerDistributionChannels:
+          type: array
+          items:
+            type: string
+            enum: [EMAIL, WHATSAPP, SMS]
+
+    CustomerDetails:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Rohan Sharma
+        email:
+          type: string
+          format: email
+          example: rohan.sharma@example.com
+        phone:
+          type: string
+          pattern: '^\+91[0-9]{10}$'
+          example: "+919876543210"
+        address:
+          $ref: '#/components/schemas/Address'
+
+    Address:
+      type: object
+      properties:
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+          default: India
+
+    DeliveryDetails:
+      type: object
+      properties:
+        recipient_name:
+          type: string
+        recipient_email:
+          type: string
+          format: email
+        recipient_phone:
+          type: string
+        wish_message:
+          type: string
+          maxLength: 500
+
+    PurchaseResponseV2:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        encryptedgiftcodes:
+          type: string
+        iv:
+          type: string
+        tag:
+          type: string
+        senderName:
+          type: string
+        deliveryDetails:
+          type: object
+          properties:
+            name:
+              type: string
+            phoneNumber:
+              type: string
+            email:
+              type: string
+        expiryDates:
+          type: array
+          items:
+            type: string
+            format: date-time
+        redeemlink:
+          type: string
+          format: uri
+
+    OrderResponseV2:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        encryptedgiftcodes:
+          type: string
+        iv:
+          type: string
+        tag:
+          type: string
+        expiryDates:
+          type: array
+          items:
+            type: string
+            format: date-time
+        redeemlink:
+          type: string
+          format: uri
+
+    WalletBalanceResponseV2:
+      type: object
+      properties:
+        balance:
+          type: string
+          example: "92883.95"
+        partnerName:
+          type: string
+          example: Acme Distribution Ltd
+
+    InvoiceResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        invoice_url:
+          type: string
+          format: uri
+          description: S3 presigned URL (valid for 24 hours)
+        invoice_number:
+          type: string
+          example: INV-ACM-2024-00001
+        order_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+
+    # ============================================
+    # V3 SCHEMAS
+    # ============================================
+
+    SkusResponseV3:
+      type: object
+      properties:
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuV3'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    SkuV3:
+      type: object
+      properties:
+        sku_id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+          description: Product type - VOUCHER for gift cards, TOPUP for direct topups
+        topup_details:
+          $ref: '#/components/schemas/TopupDetailsSchema'
+        denomination:
+          type: string
+        tax_rate:
+          type: string
+        discount:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: integer
+        updateAt:
+          type: integer
+
+    TopupDetailsSchema:
+      type: object
+      description: Only present for TOPUP SKUs
+      properties:
+        required_fields:
+          type: array
+          items:
+            type: string
+          example: [player_id, server_id, server_name]
+        optional_fields:
+          type: array
+          items:
+            type: string
+          example: [role_id]
+        servers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        zones:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        characters:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+
+    ListServersResponse:
+      type: object
+      properties:
+        servers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: s1
+              name:
+                type: string
+                example: Asia
+
+    ValidatePurchaseRequest:
+      type: object
+      required:
+        - merchant_order_request_id
+        - giftcard_id
+        - sku_id
+        - quantity
+        - fulfilment_type
+        - final_price
+      properties:
+        merchant_order_request_id:
+          type: string
+        giftcard_id:
+          type: string
+        sku_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          default: INR
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+        topup_details:
+          $ref: '#/components/schemas/TopupDetailsPurchase'
+        final_price:
+          type: string
+          description: Expected final price for validation
+          example: "236.00"
+
+    TopupDetailsPurchase:
+      type: object
+      description: Required for TOPUP fulfilment type
+      properties:
+        player_id:
+          type: string
+          description: Player ID for topup (required)
+        server:
+          type: object
+          description: Server selection (if server_id in required_fields)
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        zone_id:
+          type: string
+          description: Zone ID (if zone_id in required_fields)
+        role_id:
+          type: string
+          description: Role ID (optional)
+        character_id:
+          type: string
+          description: Character ID (optional)
+
+    ValidatePurchaseResponse:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        status:
+          type: string
+          enum: [validated, failed]
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+        user_name:
+          type: string
+          description: Player username (for TOPUP validation success)
+        error:
+          type: string
+          description: Error message (for validation failure)
+
+    PurchaseRequestV3:
+      type: object
+      required:
+        - merchant_order_request_id
+        - giftcard_id
+        - sku_id
+        - quantity
+        - fulfilment_type
+        - final_price
+      properties:
+        merchant_order_request_id:
+          type: string
+        giftcard_id:
+          type: string
+        sku_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          default: INR
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+        topup_details:
+          $ref: '#/components/schemas/TopupDetailsPurchase'
+        customerDetails:
+          $ref: '#/components/schemas/CustomerDetails'
+        deliveryDetails:
+          $ref: '#/components/schemas/DeliveryDetails'
+        customerDistributionChannels:
+          type: array
+          items:
+            type: string
+            enum: [EMAIL, WHATSAPP, SMS]
+        final_price:
+          type: string
+
+    PurchaseResponseV3:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+        invoice_amount:
+          type: string
+        encryptedgiftcodes:
+          type: string
+          description: Only for VOUCHER orders
+        iv:
+          type: string
+        tag:
+          type: string
+        senderName:
+          type: string
+        deliveryDetails:
+          type: object
+          properties:
+            name:
+              type: string
+            phoneNumber:
+              type: string
+            email:
+              type: string
+        expiryDates:
+          type: array
+          items:
+            type: string
+        redeemlink:
+          type: string
+          format: uri
+
+    OrderResponseV3:
+      type: object
+      properties:
+        merchant_order_request_id:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+          enum: [completed, processing, failed]
+        fulfilment_type:
+          type: string
+          enum: [VOUCHER, TOPUP]
+        invoice_amount:
+          type: string
+        encryptedgiftcodes:
+          type: string
+          description: Only for VOUCHER orders
+        iv:
+          type: string
+        tag:
+          type: string
+        expiryDates:
+          type: array
+          items:
+            type: string
+        redeemlink:
+          type: string
+          format: uri
+
+    # ============================================
+    # COMMON SCHEMAS
+    # ============================================
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 2
+        page:
+          type: integer
+          example: 0
+        pageSize:
+          type: integer
+          example: 20
+        totalPages:
+          type: integer
+          example: 1
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [authentication_error, invalid_request_error, api_error]
+            code:
+              type: string
+            message:
+              type: string
+            trace_id:
+              type: string
+            retryable:
+              type: boolean
+            fields:
+              type: array
+              items:
+                type: object
+                properties:
+                  param:
+                    type: string
+                  code:
+                    type: string
+                  message:
+                    type: string
+            meta:
+              type: object
+              additionalProperties: true
+            doc_url:
+              type: string
