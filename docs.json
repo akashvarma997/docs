@@ -2,45 +2,52 @@
   "$schema": "https://mintlify.com/docs.json",
   "name": "Athena Gaming",
   "theme": "mint",
-  "versions": ["v3", "v2", "v1"],
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#00FF00",
-    "light": "#00FF00",
-    "dark": "#00FF00"
+    "primary": "#00FF00"
   },
+  "versions": ["v3", "v2", "v1"],
   "navigation": {
-    "tabs": [
+    "versions": [
       {
-        "tab": "Guides",
-        "groups": [
+        "version": "v3",
+        "tabs": [
           {
-            "group": "Getting Started",
-            "pages": ["introduction"]
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Athena API",
+                "openapi": "api-reference/athena-api-v3.yaml"
+              }
+            ]
           }
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "version": "v2",
+        "tabs": [
           {
-            "group": "General",
-            "pages": ["api-reference/introduction"]
-          },
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Athena API",
+                "openapi": "api-reference/athena-api-v2.yaml"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": "v1",
+        "tabs": [
           {
-            "group": "Athena API",
-            "version": "v3",
-            "openapi": "api-reference/athena-api-v3.yaml"
-          },
-          {
-            "group": "Athena API",
-            "version": "v2",
-            "openapi": "api-reference/athena-api-v2.yaml"
-          },
-          {
-            "group": "Athena API",
-            "version": "v1",
-            "openapi": "api-reference/athena-api-v1.yaml"
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Athena API",
+                "openapi": "api-reference/athena-api-v1.yaml"
+              }
+            ]
           }
         ]
       }
