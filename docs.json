@@ -1,40 +1,53 @@
-  {
-    "$schema": "https://mintlify.com/docs.json",
-    "name": "Athena Gaming",
-    "theme": "mint",
-    "favicon": "/favicon.svg",
-    "colors": {
-      "primary": "#00FF00"
-    },
-    "navigation": {
-      "versions": [
-        {
-          "version": "v3",
-          "groups": [
-            {
-              "group": "API Reference",
-              "openapi": "api-reference/athena-api-v3.yaml"
-            }
-          ]
-        },
-        {
-          "version": "v2",
-          "groups": [
-            {
-              "group": "API Reference",
-              "openapi": "api-reference/athena-api-v2.yaml"
-            }
-          ]
-        },
-        {
-          "version": "v1",
-          "groups": [
-            {
-              "group": "API Reference",
-              "openapi": "api-reference/athena-api-v1.yaml"
-            }
-          ]
-        }
-      ]
-    }
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Athena Gaming",
+  "theme": "mint",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#00FF00"
+  },
+  "versions": ["v3", "v2", "v1"],
+  "navigation": {
+    "versions": [
+      {
+        "version": "v3",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Athena API v3",
+            "openapi": "api-reference/athena-api-v3.yaml"
+          }
+        ]
+      },
+      {
+        "version": "v2",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Athena API v2",
+            "openapi": "api-reference/athena-api-v2.yaml"
+          }
+        ]
+      },
+      {
+        "version": "v1",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Athena API v1",
+            "openapi": "api-reference/athena-api-v1.yaml"
+          }
+        ]
+      }
+    ]
   }
+}
