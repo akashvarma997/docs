@@ -1,4 +1,4 @@
-{
+  {
     "$schema": "https://mintlify.com/docs.json",
     "name": "Athena Gaming",
     "theme": "mint",
@@ -10,49 +10,28 @@
       "versions": [
         {
           "version": "v3",
-          "tabs": [
+          "groups": [
             {
-              "tab": "API Reference",
-              "groups": [
-                {
-                  "group": "Endpoints",
-                  "openapi": {
-                    "source": "api-reference/athena-api-v3.yaml"
-                  }
-                }
-              ]
+              "group": "API Reference",
+              "openapi": "api-reference/athena-api-v3.yaml"
             }
           ]
         },
         {
           "version": "v2",
-          "tabs": [
+          "groups": [
             {
-              "tab": "API Reference",
-              "groups": [
-                {
-                  "group": "Endpoints",
-                  "openapi": {
-                    "source": "api-reference/athena-api-v2.yaml"
-                  }
-                }
-              ]
+              "group": "API Reference",
+              "openapi": "api-reference/athena-api-v2.yaml"
             }
           ]
         },
         {
           "version": "v1",
-          "tabs": [
+          "groups": [
             {
-              "tab": "API Reference",
-              "groups": [
-                {
-                  "group": "Endpoints",
-                  "openapi": {
-                    "source": "api-reference/athena-api-v1.yaml"
-                  }
-                }
-              ]
+              "group": "API Reference",
+              "openapi": "api-reference/athena-api-v1.yaml"
             }
           ]
         }
