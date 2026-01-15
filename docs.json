@@ -9,43 +9,41 @@
     "light": "#00FF00",
     "dark": "#00FF00"
   },
-  "navigation": [
-    {
-      "tab": "Guides",
-      "groups": [
-        {
-          "group": "Getting Started",
-          "pages": [
-            "introduction"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "API reference",
-      "groups": [
-        {
-          "group": "General",
-          "pages": [
-            "api-reference/introduction"
-          ]
-        },
-        {
-          "group": "Athena API",
-          "version": "v3",
-          "openapi": "api-reference/athena-api-v3.yaml"
-        },
-        {
-          "group": "Athena API",
-          "version": "v2",
-          "openapi": "api-reference/athena-api-v2.yaml"
-        },
-        {
-          "group": "Athena API",
-          "version": "v1",
-          "openapi": "api-reference/athena-api-v1.yaml"
-        }
-      ]
-    }
-  ]
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["introduction"]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "General",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Athena API",
+            "version": "v3",
+            "openapi": "api-reference/athena-api-v3.yaml"
+          },
+          {
+            "group": "Athena API",
+            "version": "v2",
+            "openapi": "api-reference/athena-api-v2.yaml"
+          },
+          {
+            "group": "Athena API",
+            "version": "v1",
+            "openapi": "api-reference/athena-api-v1.yaml"
+          }
+        ]
+      }
+    ]
+  }
 }
