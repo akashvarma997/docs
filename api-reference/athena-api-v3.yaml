@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title: Athena GiftCard API
+  title: Athena GiftCard API V3
   description: |
     The Athena GiftCard API v3 introduces support for direct game topups alongside traditional gift card vouchers.
 
