@@ -11,6 +11,10 @@
   "navigation": {
     "tabs": [
       {
+        "tab": "API Reference demo",
+        "openapi": "openapi.yaml"
+      },
+      {
         "tab": "Guides",
         "groups": [
           {
